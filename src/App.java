@@ -14,26 +14,17 @@ import com.google.gson.Gson;
  * Main class for the finance tracking application.
  * This class initializes the application, loads existing data, and handles user input.
  */
-public class App {
+class App {
     public static void main(String[] args) {
         FinanceDataStorage storage = new FinanceDataStorage();
         storage.loadExpenses();
         storage.loadIncomes();
-        Scanner scanner = new Scanner(System.in);
         UserInterface userInterface = new UserInterface(storage);
 
-        boolean keepRunning = true;
-        while (keepRunning) {
+        while (true) { // Changed to an infinite loop, exit handled in UserInterface
             storage.displayData();
-            userInterface.getInput();
-            System.out.print("Continue? (yes/no): ");
-            String response = scanner.nextLine();
-            if ("no".equalsIgnoreCase(response)) {
-                keepRunning = false;
-            }
+            userInterface.chooseFromMenu();
         }
-
-        scanner.close(); 
     }
 }
 
@@ -101,6 +92,15 @@ class FinanceDataStorage {
     private static final String EXPENSES_FILE = "expenses.json";
     private static final String INCOME_FILE = "incomes.json";
     private Gson gson = new Gson();
+
+    // Add getter methods for expenses and incomes
+    public List<Expense> getExpenses() {
+        return expenses;
+    }
+
+    public List<Income> getIncomes() {
+        return incomes;
+    }
 
     /**
      * Adds an expense to the storage and saves it.
@@ -213,47 +213,101 @@ class FinanceDataStorage {
 }
 
 class ReportGenerator {
-    
+    private FinanceDataStorage storage;
+
+    public ReportGenerator(FinanceDataStorage storage) {
+        this.storage = storage;
+    }
+
+    public void generateReport() {
+        // Implement the logic for generating and displaying the report
+        System.out.println("\n--- Financial Report ---");
+        // Example report content (customize as needed)
+        System.out.println("Total Income: " + calculateTotalIncome());
+        System.out.println("Total Expenses: " + calculateTotalExpenses());
+        // Add more report details here
+    }
+
+    private double calculateTotalIncome() {
+        return storage.getIncomes().stream().mapToDouble(Income::getAmount).sum();
+    }
+
+    private double calculateTotalExpenses() {
+        return storage.getExpenses().stream().mapToDouble(Expense::getAmount).sum();
+    }
 }
 
 /**
  * Handles user interface for input and interaction.
- */
-class UserInterface {
+ */class UserInterface {
     private Scanner scanner;
     private FinanceDataStorage storage;
+    private ReportGenerator reportGenerator;
 
-    /**
-     * Constructs a UserInterface object with the specified storage.
-     * @param storage The FinanceDataStorage to be used.
-     */
     public UserInterface(FinanceDataStorage storage) {
         this.scanner = new Scanner(System.in);
         this.storage = storage;
+        this.reportGenerator = new ReportGenerator(storage);
     }
 
-    /**
+    public void chooseFromMenu() {
+        System.out.println("\nWhat would you like to do?");
+        System.out.println("I - Enter income or expense.");
+        System.out.println("R - View a report.");
+        System.out.println("Q - Quit.");
+        System.out.print("Enter your choice: ");
+
+        String input = scanner.nextLine();
+        if (input.isEmpty()) {
+            System.out.println("Input is empty, please enter an option.");
+            return;
+        }
+        char option = input.trim().toLowerCase().charAt(0);
+
+        switch (option) {
+            case 'i':
+                getInput();
+                break;
+            case 'r':
+                reportGenerator.generateReport();
+                break;
+            case 'q':
+                System.out.println("Exiting...");
+                System.exit(0);
+                break;
+            default:
+                System.out.println("Invalid option, please try again.");
+                break;
+            }
+        } 
+   /**
      * Gets financial data input from the user.
      */
-    public void getInput() {
-        System.out.print("Enter an amount (ex. -5.00 or 5.00): ");
-        double amount = scanner.nextDouble();
-        scanner.nextLine(); // Consume the leftover newline
-
-        LocalDate date = LocalDate.now(); 
-        System.out.print("\n");
-
-        if (amount < 0) {
-            System.out.print("Enter a category: ");
-            String category = scanner.nextLine(); 
-            Expense expense = new Expense(amount, category, date);
-            storage.addExpense(expense);
-        } else {
-            Income income = new Income(amount, date);
-            storage.addIncome(income);
-        }
+    private void getInput() {
+    System.out.print("Enter an amount (ex. -5.00 for expense or 5.00 for income): ");
+    double amount;
+    try {
+        amount = scanner.nextDouble();
+    } catch (Exception e) {
+        System.out.println("Invalid input. Please enter a numeric value.");
+        scanner.nextLine(); // Clear buffer
+        return;
     }
+    scanner.nextLine(); // Consume the leftover newline
 
+    LocalDate date = LocalDate.now(); 
+
+    if (amount < 0) {
+        System.out.print("Enter a category for the expense: ");
+        String category = scanner.nextLine();
+        Expense expense = new Expense(Math.abs(amount), category, date);
+        storage.addExpense(expense);
+    } else if (amount > 0) {
+        Income income = new Income(amount, date);
+        storage.addIncome(income);
+    } else {
+        System.out.println("Amount cannot be zero.");
+    }
 }
-
+ }
 
