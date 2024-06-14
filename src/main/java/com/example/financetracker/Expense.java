@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 /**
  * Represents an expense with an amount, category, and date.
  */
-class Expense {
+public class Expense {
     private double amount;
     private String category;
     private String date; //Gson does not support LocalDate
@@ -22,13 +22,16 @@ class Expense {
         this.category = category;
         this.date = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
+
     public double getAmount() {
         return amount;
     }
+
     public String getCategory() {
         return category;
     }
-    public LocalDate getDateAsLocalDate() {
+
+    public LocalDate getDate() {
         return LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
     }
 }

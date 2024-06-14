@@ -1,11 +1,12 @@
 package com.example.financetracker;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
  * Represents an income with an amount and date.
  */
-class Income {
+public class Income {
     private double amount;
     private String date; //Gson does not support LocalDate
 
@@ -18,10 +19,12 @@ class Income {
         this.amount = amount;
         this.date = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
+
     public double getAmount() {
         return amount;
     }
-     public LocalDate getDateAsLocalDate() {
+
+    public LocalDate getDate() {
         return LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
     }
 }
